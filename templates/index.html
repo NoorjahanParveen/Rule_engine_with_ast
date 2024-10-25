@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <title>Rule Engine</title>
+</head>
+<body>
+    <h1>Rule Engine</h1>
+    <form id="rule-form">
+        <input type="text" id="rule-input" placeholder="Enter rule" required>
+        <button type="submit">Create Rule</button>
+    </form>
+    
+    <form id="combine-form">
+        <input type="text" id="combine-input" placeholder="Enter rules to combine (comma-separated)" required>
+        <button type="submit">Combine Rules</button>
+    </form>
+
+    <form id="evaluate-form">
+        <textarea id="data-input" placeholder='Enter user data in JSON format' required></textarea>
+        <input type="text" id="rule-eval-input" placeholder='Enter rule to evaluate' required>
+        <button type="submit">Evaluate Rule</button>
+    </form>
+    
+    <div id="output"></div>
+
+    <script>
+        // Event listener for creating a rule
+        document.getElementById('rule-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const rule = document.getElementById('rule-input').value;
+            const response = await fetch('http://127.0.0.1:5000/create_rule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rule })
+            });
+            const result = await response.json();
+            document.getElementById('output').innerHTML = `AST Node: ${JSON.stringify(result)}`;
+        };
+
+        // Event listener for combining rules
+        document.getElementById('combine-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const rules = document.getElementById('combine-input').value.split(',');
+            const response = await fetch('http://127.0.0.1:5000/combine_rules', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rules })
+            });
+            const result = await response.json();
+            document.getElementById('output').innerHTML += `<br>Combined AST Root: ${JSON.stringify(result)}`;
+        };
+
+        // Event listener for evaluating a rule
+        document.getElementById('evaluate-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const userData = document.getElementById('data-input').value;
+            const ruleString = document.getElementById('rule-eval-input').value;
+            const response = await fetch('http://127.0.0.1:5000/evaluate_rule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userData, rule: ruleString })
+            });
+            const result = await response.json();
+            document.getElementById('output').innerHTML += `<br>Eligibility: ${result.isEligible}`;
+        };
+    </script>
+</body>
+</html>
+
